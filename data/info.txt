@@ -1,2 +1,35 @@
 cmd:
 conda activate speech-emotion
+
+Τι έχουμε χτίσει μέχρι τώρα
+
+dataset_loader.py
+→ Σκανάρει IEMOCAP, φτιάχνει λίστα samples με path / emotion / label.
+
+iemocap_dataset.py
+→ Παίρνει αυτά τα samples και για κάθε ένα:
+
+φορτώνει το wav
+
+βγάζει log-mel spectrogram
+
+κάνει pad/cut στα 300 frames
+
+επιστρέφει tensor + label.
+
+dataloaders.py
+→ Τυλίγει τα παραπάνω σε DataLoader για train/val/test με batches.
+
+model_cnn.py
+→ Ορίζει το CNN που δέχεται [B, 1, 128, 300] και βγάζει 5 κλάσεις.
+
+train.py
+→ Όλα μαζί:
+
+φορτώνει samples
+
+κάνει 70/15/15 split
+
+φτιάχνει dataloaders
+
+τρέχει training loop (3 epochs test run) πάνω σε GPU.
