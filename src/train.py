@@ -70,13 +70,33 @@ def main():
     # Load all samples
     samples = load_iemocap_metadata(BASE_PATH)
 
-    # 70/15/15 split
-    train_samples, temp = train_test_split(
-        samples, test_size=0.30, shuffle=True, random_state=42
-    )
-    val_samples, test_samples = train_test_split(
-        temp, test_size=0.50, shuffle=True, random_state=42
-    )
+    # Group samples by session - 60/20/20 split
+    session_to_samples = {}
+    for s in samples:
+        sess = s["session"]          # "Session1" ... "Session5"
+        session_to_samples.setdefault(sess, []).append(s)
+
+    # Speaker-independent split:
+    train_sessions = ["Session1", "Session2", "Session3"]
+    val_sessions   = ["Session4"]
+    test_sessions  = ["Session5"]
+
+    train_samples = []
+    val_samples = []
+    test_samples = []
+
+    for sess in train_sessions:
+        train_samples.extend(session_to_samples[sess])
+
+    for sess in val_sessions:
+        val_samples.extend(session_to_samples[sess])
+
+    for sess in test_sessions:
+        test_samples.extend(session_to_samples[sess])
+
+    print("Train sessions:", train_sessions, "→", len(train_samples), "samples")
+    print("Val sessions:  ", val_sessions,   "→", len(val_samples), "samples")
+    print("Test sessions: ", test_sessions,  "→", len(test_samples), "samples")
 
     # Dataloaders
     train_loader, val_loader, test_loader = create_dataloaders(

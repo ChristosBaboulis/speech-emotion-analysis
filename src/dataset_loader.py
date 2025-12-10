@@ -66,6 +66,8 @@ def load_iemocap_metadata(base_path: str):
                         "path": wav_path,
                         "emotion": mapped,
                         "label": label,
-                    })
+                        "session": session,
+                })
+
 
     return samples
