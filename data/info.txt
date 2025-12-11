@@ -1,6 +1,7 @@
 cmd:
 conda activate speech-emotion
 
+---------------------------------------------------------------------------------------------------
 Τι έχουμε χτίσει μέχρι τώρα
 
 dataset_loader.py
@@ -33,3 +34,17 @@ train.py
 φτιάχνει dataloaders
 
 τρέχει training loop (3 epochs test run) πάνω σε GPU.
+
+
+---------------------------------------------------------------------------------------------------
+# 1. Train baseline CNN στο IEMOCAP
+python src/train.py
+
+# 2. Train DANN (IEMOCAP source + RAVDESS target)
+python src/train_dann.py
+
+# 3. Evaluate baseline CNN στο RAVDESS
+python src/eval_ravdess_baseline.py
+
+# 4. Evaluate DANN στο RAVDESS
+python src/eval_ravdess_dann.py
