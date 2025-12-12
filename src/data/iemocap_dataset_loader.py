@@ -9,7 +9,15 @@ EMOTION_MAP = {
     "fru": "frustrated",
 }
 
-CLASS_TO_IDX = {emo: i for i, emo in enumerate(sorted(set(EMOTION_MAP.values())))}
+# Fixed label order (alphabetical): angry=0, frustrated=1, happy=2, neutral=3, sad=4
+# This ensures consistent labels across IEMOCAP and RAVDESS datasets
+CLASS_TO_IDX = {
+    "angry": 0,
+    "frustrated": 1,
+    "happy": 2,
+    "neutral": 3,
+    "sad": 4,
+}
 
 
 def load_iemocap_metadata(base_path: str):

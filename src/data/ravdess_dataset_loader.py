@@ -1,5 +1,7 @@
 import os
-from src.data.iemocap_dataset_loader import CLASS_TO_IDX  # same label indices as IEMOCAP
+# Import CLASS_TO_IDX from IEMOCAP to ensure consistent label mapping
+# Label order: angry=0, frustrated=1, happy=2, neutral=3, sad=4
+from src.data.iemocap_dataset_loader import CLASS_TO_IDX
 
 # Map RAVDESS emotion code (EE in filename) → our 5-class schema
 RAVDESS_EMOTION_MAP = {

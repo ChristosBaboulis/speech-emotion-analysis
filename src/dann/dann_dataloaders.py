@@ -1,79 +1,13 @@
 import os
-from typing import List, Tuple
+from typing import List
 
 import torch
-from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
-import torchaudio
-import warnings
-warnings.filterwarnings(
-    "ignore",
-    category=UserWarning,
-    message="At least one mel filterbank has all zero values.*",
-)
-
+from torch.utils.data import DataLoader, WeightedRandomSampler
 
 from src.data.iemocap_dataset_loader import load_iemocap_metadata
 from src.data.ravdess_dataset_loader import load_ravdess_metadata
-
-
-# ---------- Audio → log-mel ----------
-def load_wav_to_logmel(path: str,
-                       sample_rate: int = 16000,
-                       n_mels: int = 128,
-                       max_frames: int = 300) -> torch.Tensor:
-    waveform, sr = torchaudio.load(path)
-
-    if sr != sample_rate:
-        waveform = torchaudio.functional.resample(waveform, sr, sample_rate)
-
-    # ensure mono: average channels if stereo
-    if waveform.size(0) > 1:
-        waveform = waveform.mean(dim=0, keepdim=True)
-
-    mel_spec = torchaudio.transforms.MelSpectrogram(
-        sample_rate=sample_rate,
-        n_fft=512,
-        win_length=400,
-        hop_length=160,
-        n_mels=n_mels,
-    )(waveform)
-
-    mel_spec = torchaudio.transforms.AmplitudeToDB()(mel_spec)
-
-    # mel_spec shape: [1, n_mels, time]
-    t = mel_spec.size(2)
-    if t < max_frames:
-        pad = max_frames - t
-        mel_spec = torch.nn.functional.pad(mel_spec, (0, pad))
-    else:
-        mel_spec = mel_spec[:, :, :max_frames]
-
-    return mel_spec  # [1, 128, max_frames]
-
-
-# ---------- Dataset ----------
-class EmotionDomainDataset(Dataset):
-    """
-    Generic dataset for DANN:
-    returns (log_mel, emotion_label, domain_label)
-    domain_label: 0 = IEMOCAP, 1 = RAVDESS
-    """
-
-    def __init__(self, samples: List[dict], domain_id: int):
-        self.samples = samples
-        self.domain_id = domain_id
-
-    def __len__(self) -> int:
-        return len(self.samples)
-
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int, int]:
-        item = self.samples[idx]
-        wav_path = item["path"]
-        label = int(item["label"])
-
-        mel = load_wav_to_logmel(wav_path)
-
-        return mel, label, self.domain_id
+from src.data.iemocap_dataset import IEMOCAPDataset
+from src.data.ravdess_dataset import RAVDESSDataset
 
 
 # ---------- Helpers to filter IEMOCAP by session ----------
@@ -108,8 +42,9 @@ def create_dann_loaders(
     ravdess_samples = load_ravdess_metadata(ravdess_base)
 
     # 3) Build datasets
-    source_dataset = EmotionDomainDataset(train_iemocap, domain_id=0)
-    target_dataset = EmotionDomainDataset(ravdess_samples, domain_id=1)
+    # domain_id: 0 = IEMOCAP, 1 = RAVDESS
+    source_dataset = IEMOCAPDataset(train_iemocap, domain_id=0)
+    target_dataset = RAVDESSDataset(ravdess_samples, domain_id=1)
 
     # 4) Class balancing for source (IEMOCAP)
     labels = torch.tensor([s["label"] for s in train_iemocap], dtype=torch.long)

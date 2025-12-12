@@ -5,7 +5,7 @@ import librosa
 import numpy as np
 
 
-class IEMOCAPDataset(Dataset):
+class RAVDESSDataset(Dataset):
     def __init__(self, samples, sr=16000, n_mels=128, max_frames=300, domain_id=None):
         self.samples = samples
         self.sr = sr
@@ -58,12 +58,12 @@ class IEMOCAPDataset(Dataset):
 
 
 if __name__ == "__main__":
-    from src.data.iemocap_dataset_loader import load_iemocap_metadata
+    from src.data.ravdess_dataset_loader import load_ravdess_metadata
     from sklearn.model_selection import train_test_split
 
-    BASE_PATH = r"D:\Recordings\Science\DL\IEMOCAP_full_release"
+    BASE_PATH = r"D:\Recordings\Science\DL\RAVDESS"
 
-    samples = load_iemocap_metadata(BASE_PATH)
+    samples = load_ravdess_metadata(BASE_PATH)
     train_samples, temp = train_test_split(
         samples, test_size=0.30, shuffle=True, random_state=42
     )
@@ -71,8 +71,9 @@ if __name__ == "__main__":
         temp, test_size=0.50, shuffle=True, random_state=42
     )
 
-    dataset = IEMOCAPDataset(train_samples)
+    dataset = RAVDESSDataset(train_samples)
     mel, label = dataset[0]
 
     print("Mel shape:", mel.shape)
     print("Label:", label)
+
