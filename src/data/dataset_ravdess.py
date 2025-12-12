@@ -1,5 +1,5 @@
 import os
-from src.data.dataset_loader import CLASS_TO_IDX  # same label indices as IEMOCAP
+from src.data.iemocap_dataset_loader import CLASS_TO_IDX  # same label indices as IEMOCAP
 
 # Map RAVDESS emotion code (EE in filename) → our 5-class schema
 RAVDESS_EMOTION_MAP = {

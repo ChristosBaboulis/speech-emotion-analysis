@@ -4,7 +4,7 @@ import torch.nn as nn
 from torch.optim import Adam
 
 # Use absolute package import to ensure the sibling package is found.
-from src.data.dataset_loader import load_iemocap_metadata
+from src.data.iemocap_dataset_loader import load_iemocap_metadata
 from src.baseline.dataloaders import create_dataloaders
 from src.baseline.model_cnn import EmotionCNN
 

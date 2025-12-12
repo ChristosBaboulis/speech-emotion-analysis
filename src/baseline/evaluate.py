@@ -4,7 +4,7 @@ import torch
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 
-from src.data.dataset_loader import load_iemocap_metadata, CLASS_TO_IDX
+from src.data.iemocap_dataset_loader import load_iemocap_metadata, CLASS_TO_IDX
 from src.baseline.dataloaders import create_dataloaders
 from src.baseline.model_cnn import EmotionCNN
 
@@ -207,3 +207,4 @@ def eval_with_confusion(model, loader, device, num_classes, class_names=None,
 
 if __name__ == "__main__":
     main()
+

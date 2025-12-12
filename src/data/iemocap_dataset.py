@@ -54,7 +54,7 @@ class IEMOCAPDataset(Dataset):
 
 
 if __name__ == "__main__":
-    from data.dataset_loader import load_iemocap_metadata
+    from src.data.iemocap_dataset_loader import load_iemocap_metadata
     from sklearn.model_selection import train_test_split
 
     BASE_PATH = r"D:\Recordings\Science\DL\IEMOCAP_full_release"

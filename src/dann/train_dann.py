@@ -5,7 +5,7 @@ from torch.optim import Adam
 import math
 
 # Use absolute imports so the src package resolves correctly.
-from src.data.dataset_loader import load_iemocap_metadata
+from src.data.iemocap_dataset_loader import load_iemocap_metadata
 from src.baseline.dataloaders import create_dataloaders
 from src.dann.dann_dataloaders import create_dann_loaders
 from src.dann.model_dann import DANNEmotionModel
