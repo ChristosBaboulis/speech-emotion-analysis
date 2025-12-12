@@ -53,7 +53,7 @@ def main():
             labels = labels.to(DEVICE)
 
             outputs = model(mel)
-            _, preds = outputs.max(1)
+            preds = outputs.argmax(dim=1)
 
             all_labels.append(labels.cpu())
             all_preds.append(preds.cpu())

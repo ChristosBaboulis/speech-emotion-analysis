@@ -120,10 +120,12 @@ def main():
             all_mel = torch.cat([src_mel, tgt_mel], dim=0)
             all_domains = torch.cat([src_domains, tgt_domains], dim=0)
 
-            # Simple schedule for alpha (0→MAX_ALPHA)
+            # Alpha scheduling for gradient reversal (standard DANN approach)
+            # Progress from 0 to 1 across training: p in [0, 1]
             p = (epoch - 1 + step / num_steps) / NUM_EPOCHS
-            alpha = 2.0 / (1.0 + math.exp(-10.0 * p)) - 1.0  # scalar
-            MAX_ALPHA = 0.7
+            # Sigmoid-like schedule: alpha increases smoothly from 0 to MAX_ALPHA
+            alpha = 2.0 / (1.0 + math.exp(-10.0 * p)) - 1.0  # [0, ~1] for p in [0, 1]
+            MAX_ALPHA = 0.7  # Cap alpha to prevent too strong domain alignment early
             alpha = min(alpha, MAX_ALPHA)
 
             optimizer.zero_grad()
