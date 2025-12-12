@@ -13,7 +13,7 @@ warnings.filterwarnings(
 
 
 from src.data.iemocap_dataset_loader import load_iemocap_metadata
-from src.data.dataset_ravdess import load_ravdess_metadata
+from src.data.ravdess_dataset_loader import load_ravdess_metadata
 
 
 # ---------- Audio → log-mel ----------

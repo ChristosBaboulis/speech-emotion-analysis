@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 import torchaudio
 import warnings
 
-from data.dataset_ravdess import load_ravdess_metadata
+from src.data.ravdess_dataset_loader import load_ravdess_metadata
 from baseline.model_cnn import EmotionCNN
 from utils.evaluate import eval_with_confusion   # <= USE confusion
 
