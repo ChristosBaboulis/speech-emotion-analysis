@@ -1,13 +1,12 @@
 import os
 import numpy as np
 import torch
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 
-from data.dataset_loader import load_iemocap_metadata, CLASS_TO_IDX
-from baseline.dataloaders import create_dataloaders
-from baseline.model_cnn import EmotionCNN
+from src.data.dataset_loader import load_iemocap_metadata, CLASS_TO_IDX
+from src.baseline.dataloaders import create_dataloaders
+from src.baseline.model_cnn import EmotionCNN
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BASE_PATH = r"D:\Recordings\Science\DL\IEMOCAP_full_release"
@@ -20,17 +19,36 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 def main():
     print("Using device:", DEVICE)
 
-    # Load all samples and reproduce the same 70/15/15 split (same random_state as train.py)
+    # Load all samples
     samples = load_iemocap_metadata(BASE_PATH)
 
-    train_samples, temp = train_test_split(
-        samples, test_size=0.30, shuffle=True, random_state=42
-    )
-    val_samples, test_samples = train_test_split(
-        temp, test_size=0.50, shuffle=True, random_state=42
-    )
+    # Group samples by session - speaker-independent split (same as train.py)
+    session_to_samples = {}
+    for s in samples:
+        sess = s["session"]          # "Session1" ... "Session5"
+        session_to_samples.setdefault(sess, []).append(s)
 
-    print("Test samples:", len(test_samples))
+    # Speaker-independent split (same as train.py):
+    train_sessions = ["Session1", "Session2", "Session3"]
+    val_sessions   = ["Session4"]
+    test_sessions  = ["Session5"]
+
+    train_samples = []
+    val_samples = []
+    test_samples = []
+
+    for sess in train_sessions:
+        train_samples.extend(session_to_samples[sess])
+
+    for sess in val_sessions:
+        val_samples.extend(session_to_samples[sess])
+
+    for sess in test_sessions:
+        test_samples.extend(session_to_samples[sess])
+
+    print("Train sessions:", train_sessions, "→", len(train_samples), "samples")
+    print("Val sessions:  ", val_sessions,   "→", len(val_samples), "samples")
+    print("Test sessions: ", test_sessions,  "→", len(test_samples), "samples")
 
     # Create only the test DataLoader (train/val are unused here)
     _, _, test_loader = create_dataloaders(
