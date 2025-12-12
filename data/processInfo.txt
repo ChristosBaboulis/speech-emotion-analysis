@@ -1,14 +1,14 @@
 Baseline Model:
 Train baseline: python -m src.baseline.train
 Evaluate baseline στο IEMOCAP: python -m src.baseline.evaluate
-Αποθηκεύει: confusion_matrix_baseline_iemocap_test.png
+Αποθηκεύει: confusion_matrix_baseline_iemocap.png
 Evaluate baseline στο RAVDESS: python -m src.baseline.eval_ravdess_baseline
 Αποθηκεύει: confusion_matrix_baseline_ravdess.png
 
 DANN Model:
 Train DANN: python -m src.dann.train_dann
 Evaluate DANN στο IEMOCAP: python -m src.dann.eval_iemocap_dann
-Αποθηκεύει: confusion_matrix_dann_iemocap_test.png
+Αποθηκεύει: confusion_matrix_dann_iemocap.png
 Evaluate DANN στο RAVDESS: python -m src.dann.eval_ravdess_dann
 Αποθηκεύει: confusion_matrix_dann_ravdess.png
 

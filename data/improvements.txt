@@ -1,0 +1,27 @@
+1. Baseline στο IEMOCAP Test: ~42% accuracy
+    Καλύτερο από το random baseline (20% για 5 κλάσεις)
+    Λογικό για baseline μοντέλο:
+    Πρώτη προσέγγιση χωρίς ιδιαίτερο fine-tuning
+    5-class classification είναι δύσκολο task
+    Χωρίς data augmentation ή advanced techniques
+    Με βελτιστοποίηση (hyperparameter tuning, augmentation, better architecture) μπορεί να βελτιωθεί
+
+2. Baseline στο RAVDESS: ~13% accuracy
+    Κλασικό domain shift πρόβλημα
+    Το 13% είναι κοντά στο random (20%), που δείχνει ότι το μοντέλο χάνει γενίκευση στο άλλο domain
+    Αναμενόμενο γιατί:
+    Εκπαιδεύτηκε μόνο στο IEMOCAP
+    Τα features που έμαθε είναι domain-specific
+    Το RAVDESS έχει διαφορετικούς speakers, recording conditions, ακουστικές ιδιότητες
+
+3. Συμπέρασμα
+    Μετρική	Baseline IEMOCAP	Baseline RAVDESS	Αναμενόμενο
+    Accuracy	~42%	~13%	Ναι
+    Random baseline	20%	20%	-
+    Improvement	+22%	-7%	-
+    
+    Τι πρέπει να δούμε τώρα
+    DANN στο IEMOCAP: θα πρέπει να είναι παρόμοιο με το baseline (~40-45%)
+    DANN στο RAVDESS: θα πρέπει να είναι σημαντικά καλύτερο από το 13% (στόχος >30-40%)
+    Αν το DANN στο RAVDESS είναι πολύ καλύτερο από το 13%, δείχνει ότι το domain adaptation λειτουργεί.
+    Συνοψίζοντας: τα 42% και 13% είναι λογικά για baseline. Το DANN θα πρέπει να βελτιώσει, ειδικά στο RAVDESS.

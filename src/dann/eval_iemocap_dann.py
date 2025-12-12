@@ -127,7 +127,7 @@ def plot_confusion_matrix(cm, class_names):
             )
 
     fig.tight_layout()
-    out_path = os.path.join(RESULTS_DIR, "confusion_matrix_dann_iemocap_test.png")
+    out_path = os.path.join(RESULTS_DIR, "confusion_matrix_dann_iemocap.png")
     plt.savefig(out_path, dpi=200)
     plt.close(fig)
     print(f"Confusion matrix saved to {out_path}")

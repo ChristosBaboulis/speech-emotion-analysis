@@ -158,10 +158,13 @@ def eval_with_confusion(model, loader, device, num_classes, class_names=None,
         all_labels,
         all_preds,
         labels=list(range(num_classes))
-    ).astype(float)
+    )
 
     if normalize:
+        cm = cm.astype(float)
         cm = cm / cm.sum(axis=1, keepdims=True).clip(min=1e-9)
+    else:
+        cm = cm.astype(int)
 
     # ---- plot ----
     if class_names is None:

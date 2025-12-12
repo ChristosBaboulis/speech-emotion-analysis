@@ -56,7 +56,7 @@ def main():
         device=DEVICE,
         num_classes=5,
         class_names=CLASS_NAMES,
-        normalize=True,
+        normalize=False,
         title="Baseline CNN on RAVDESS",
         save_path=save_path,
     )
