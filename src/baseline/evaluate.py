@@ -4,7 +4,7 @@ import torch
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 
-from src.data.iemocap_dataset_loader import load_iemocap_metadata, CLASS_TO_IDX
+from src.data.iemocap_dataset_loader import load_iemocap_metadata, split_iemocap_by_sessions, CLASS_TO_IDX
 from src.baseline.dataloaders import create_dataloaders
 from src.baseline.model_cnn import EmotionCNN
 
@@ -22,33 +22,12 @@ def main():
     # Load all samples
     samples = load_iemocap_metadata(BASE_PATH)
 
-    # Group samples by session - speaker-independent split (same as train.py)
-    session_to_samples = {}
-    for s in samples:
-        sess = s["session"]          # "Session1" ... "Session5"
-        session_to_samples.setdefault(sess, []).append(s)
+    # Split by session (speaker-independent, same as train.py)
+    train_samples, val_samples, test_samples = split_iemocap_by_sessions(samples)
 
-    # Speaker-independent split (same as train.py):
-    train_sessions = ["Session1", "Session2", "Session3"]
-    val_sessions   = ["Session4"]
-    test_sessions  = ["Session5"]
-
-    train_samples = []
-    val_samples = []
-    test_samples = []
-
-    for sess in train_sessions:
-        train_samples.extend(session_to_samples[sess])
-
-    for sess in val_sessions:
-        val_samples.extend(session_to_samples[sess])
-
-    for sess in test_sessions:
-        test_samples.extend(session_to_samples[sess])
-
-    print("Train sessions:", train_sessions, "→", len(train_samples), "samples")
-    print("Val sessions:  ", val_sessions,   "→", len(val_samples), "samples")
-    print("Test sessions: ", test_sessions,  "→", len(test_samples), "samples")
+    print("Train samples (Session1-3):", len(train_samples))
+    print("Val samples (Session4):   ", len(val_samples))
+    print("Test samples (Session5):   ", len(test_samples))
 
     # Create only the test DataLoader (train/val are unused here)
     _, _, test_loader = create_dataloaders(

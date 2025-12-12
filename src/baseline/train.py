@@ -4,7 +4,7 @@ import torch.nn as nn
 from torch.optim import Adam
 
 # Use absolute package import to ensure the sibling package is found.
-from src.data.iemocap_dataset_loader import load_iemocap_metadata
+from src.data.iemocap_dataset_loader import load_iemocap_metadata, split_iemocap_by_sessions
 from src.baseline.dataloaders import create_dataloaders
 from src.baseline.model_cnn import EmotionCNN
 
@@ -67,36 +67,13 @@ def evaluate(model, loader, criterion):
 def main():
     print("Using device:", DEVICE)
 
-    # Load all samples
+    # Load all samples and split by session (speaker-independent)
     samples = load_iemocap_metadata(BASE_PATH)
+    train_samples, val_samples, test_samples = split_iemocap_by_sessions(samples)
 
-    # Group samples by session - 60/20/20 split
-    session_to_samples = {}
-    for s in samples:
-        sess = s["session"]          # "Session1" ... "Session5"
-        session_to_samples.setdefault(sess, []).append(s)
-
-    # Speaker-independent split:
-    train_sessions = ["Session1", "Session2", "Session3"]
-    val_sessions   = ["Session4"]
-    test_sessions  = ["Session5"]
-
-    train_samples = []
-    val_samples = []
-    test_samples = []
-
-    for sess in train_sessions:
-        train_samples.extend(session_to_samples[sess])
-
-    for sess in val_sessions:
-        val_samples.extend(session_to_samples[sess])
-
-    for sess in test_sessions:
-        test_samples.extend(session_to_samples[sess])
-
-    print("Train sessions:", train_sessions, "→", len(train_samples), "samples")
-    print("Val sessions:  ", val_sessions,   "→", len(val_samples), "samples")
-    print("Test sessions: ", test_sessions,  "→", len(test_samples), "samples")
+    print("Train samples (Session1-3):", len(train_samples))
+    print("Val samples (Session4):   ", len(val_samples))
+    print("Test samples (Session5):   ", len(test_samples))
 
     # Dataloaders
     train_loader, val_loader, test_loader = create_dataloaders(

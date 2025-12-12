@@ -5,7 +5,7 @@ from torch.optim import Adam
 import math
 
 # Use absolute imports so the src package resolves correctly.
-from src.data.iemocap_dataset_loader import load_iemocap_metadata
+from src.data.iemocap_dataset_loader import load_iemocap_metadata, split_iemocap_by_sessions
 from src.baseline.dataloaders import create_dataloaders
 from src.dann.dann_dataloaders import create_dann_loaders
 from src.dann.model_dann import DANNEmotionModel
@@ -54,26 +54,7 @@ def main():
 
     # ---------- Load IEMOCAP and make speaker-independent split ----------
     samples = load_iemocap_metadata(IEMOCAP_BASE)
-
-    session_to_samples = {}
-    for s in samples:
-        sess = s["session"]  # "Session1" ... "Session5"
-        session_to_samples.setdefault(sess, []).append(s)
-
-    train_sessions = ["Session1", "Session2", "Session3"]
-    val_sessions = ["Session4"]
-    test_sessions = ["Session5"]
-
-    train_samples = []
-    val_samples = []
-    test_samples = []
-
-    for sess in train_sessions:
-        train_samples.extend(session_to_samples[sess])
-    for sess in val_sessions:
-        val_samples.extend(session_to_samples[sess])
-    for sess in test_sessions:
-        test_samples.extend(session_to_samples[sess])
+    train_samples, val_samples, test_samples = split_iemocap_by_sessions(samples)
 
     print("Train samples:", len(train_samples))
     print("Val samples:  ", len(val_samples))
@@ -86,7 +67,7 @@ def main():
 
     # ---------- DANN loaders (source: IEMOCAP train, target: RAVDESS) ----------
     src_loader, tgt_loader = create_dann_loaders(
-        IEMOCAP_BASE,
+        train_samples,  # Pre-split IEMOCAP training samples (Session1-3)
         RAVDESS_BASE,
         batch_size=BATCH_SIZE,
         num_workers=4,

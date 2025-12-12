@@ -80,3 +80,45 @@ def load_iemocap_metadata(base_path: str):
 
     return samples
 
+
+def split_iemocap_by_sessions(samples):
+    """
+    Split IEMOCAP samples by session for speaker-independent evaluation.
+    
+    Standard split:
+    - Train: Session1, Session2, Session3 (60%)
+    - Val: Session4 (20%)
+    - Test: Session5 (20%)
+    
+    Args:
+        samples: List of IEMOCAP samples (from load_iemocap_metadata)
+    
+    Returns:
+        tuple: (train_samples, val_samples, test_samples)
+    """
+    # Group samples by session
+    session_to_samples = {}
+    for s in samples:
+        sess = s["session"]  # "Session1" ... "Session5"
+        session_to_samples.setdefault(sess, []).append(s)
+    
+    # Speaker-independent split
+    train_sessions = ["Session1", "Session2", "Session3"]
+    val_sessions = ["Session4"]
+    test_sessions = ["Session5"]
+    
+    train_samples = []
+    val_samples = []
+    test_samples = []
+    
+    for sess in train_sessions:
+        train_samples.extend(session_to_samples.get(sess, []))
+    
+    for sess in val_sessions:
+        val_samples.extend(session_to_samples.get(sess, []))
+    
+    for sess in test_sessions:
+        test_samples.extend(session_to_samples.get(sess, []))
+    
+    return train_samples, val_samples, test_samples
+
