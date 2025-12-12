@@ -6,7 +6,7 @@ from torch.optim import Adam
 # Use absolute package import to ensure the sibling package is found.
 from src.data.iemocap_dataset_loader import load_iemocap_metadata, split_iemocap_by_sessions
 from src.baseline.dataloaders import create_dataloaders
-from src.baseline.model_cnn import EmotionCNN
+from src.baseline.model_crnn import EmotionCRNN
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BASE_PATH = r"D:\Recordings\Science\DL\IEMOCAP_full_release"
@@ -81,7 +81,7 @@ def main():
     )
 
     # Model, loss, optimizer
-    model = EmotionCNN(num_classes=5).to(DEVICE)
+    model = EmotionCRNN(num_classes=5).to(DEVICE)
     criterion = nn.CrossEntropyLoss()
     optimizer = Adam(model.parameters(), lr=1e-3)
 

@@ -8,7 +8,7 @@ import torchaudio
 import warnings
 
 from src.data.ravdess_dataset_loader import load_ravdess_metadata
-from baseline.model_cnn import EmotionCNN
+from src.baseline.model_crnn import EmotionCRNN
 from utils.evaluate import eval_with_confusion   # <= USE confusion
 
 warnings.filterwarnings(
@@ -92,7 +92,7 @@ def main():
     )
 
     # 2) load baseline CNN
-    model = EmotionCNN(num_classes=5).to(DEVICE)
+    model = EmotionCRNN(num_classes=5).to(DEVICE)
     ckpt_path = os.path.join("models", "best_emotion_cnn.pt")
     print("Loading baseline CNN from:", ckpt_path)
     model.load_state_dict(torch.load(ckpt_path, map_location=DEVICE))

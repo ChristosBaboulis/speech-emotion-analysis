@@ -27,14 +27,14 @@ class GradientReversal(nn.Module):
 class DANNEmotionModel(nn.Module):
     """
     DANN model: 2D CNN feature extractor + BiLSTM + dual classifier heads.
-    Extends EmotionCNN with domain adaptation via gradient reversal.
+    Extends EmotionCRNN with domain adaptation via gradient reversal.
     Input: [B, 1, n_mels, time] = [B, 1, 128, 300]
     """
 
     def __init__(self, num_classes: int = 5, num_domains: int = 2):
         super().__init__()
 
-        # Convolutional feature extractor (same as EmotionCNN)
+        # Convolutional feature extractor (same as EmotionCRNN)
         self.conv = nn.Sequential(
             nn.Conv2d(1, 32, kernel_size=3, padding=1),
             nn.BatchNorm2d(32),
@@ -57,7 +57,7 @@ class DANNEmotionModel(nn.Module):
         self.lstm_input_dim = 128 * self.freq_bins
         self.lstm_hidden = 128
 
-        # BiLSTM over time dimension (same as EmotionCNN)
+        # BiLSTM over time dimension (same as EmotionCRNN)
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_dim,
             hidden_size=self.lstm_hidden,
@@ -69,7 +69,7 @@ class DANNEmotionModel(nn.Module):
         # Gradient reversal layer for domain adaptation
         self.grl = GradientReversal()
 
-        # Emotion classifier head (same structure as EmotionCNN.classifier)
+        # Emotion classifier head (same structure as EmotionCRNN.classifier)
         self.classifier = nn.Sequential(
             nn.Linear(self.lstm_hidden * 2, 128),
             nn.ReLU(),
@@ -99,17 +99,17 @@ class DANNEmotionModel(nn.Module):
         x = self.conv(x)  # [B, C, F, T]
         B, C, F, T = x.size()
 
-        # Treat time as sequence dimension: [B, T, C * F] (same as EmotionCNN)
+        # Treat time as sequence dimension: [B, T, C * F] (same as EmotionCRNN)
         x = x.permute(0, 3, 1, 2).contiguous()   # [B, T, C, F]
         x = x.view(B, T, C * F)                  # [B, T, 128*16]
 
-        # BiLSTM (same as EmotionCNN)
+        # BiLSTM (same as EmotionCRNN)
         lstm_out, _ = self.lstm(x)               # [B, T, 2*hidden]
 
-        # Temporal pooling: mean over time (same as EmotionCNN)
+        # Temporal pooling: mean over time (same as EmotionCRNN)
         x = lstm_out.mean(dim=1)                 # [B, 2*hidden]
 
-        # Emotion classification branch (same as EmotionCNN)
+        # Emotion classification branch (same as EmotionCRNN)
         emotion_logits = self.classifier(x)      # [B, num_classes]
 
         # Domain classification branch via gradient reversal (DANN extension)

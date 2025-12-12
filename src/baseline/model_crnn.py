@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class EmotionCNN(nn.Module):
+class EmotionCRNN(nn.Module):
     """
     CRNN model: 2D CNN feature extractor + BiLSTM + FC classifier.
     Input: [B, 1, n_mels, time] = [B, 1, 128, 300]
@@ -73,7 +73,8 @@ class EmotionCNN(nn.Module):
 
 if __name__ == "__main__":
     # Quick shape test
-    model = EmotionCNN(num_classes=5)
+    model = EmotionCRNN(num_classes=5)
     dummy = torch.randn(8, 1, 128, 300)
     out = model(dummy)
     print("Output shape:", out.shape)
+

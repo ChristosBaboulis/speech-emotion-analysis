@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from src.data.iemocap_dataset_loader import load_iemocap_metadata, split_iemocap_by_sessions, CLASS_TO_IDX
 from src.baseline.dataloaders import create_dataloaders
-from src.baseline.model_cnn import EmotionCNN
+from src.baseline.model_crnn import EmotionCRNN
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BASE_PATH = r"D:\Recordings\Science\DL\IEMOCAP_full_release"
@@ -39,7 +39,7 @@ def main():
     if not os.path.isfile(best_model_path):
         raise FileNotFoundError(f"Best model not found at {best_model_path}")
 
-    model = EmotionCNN(num_classes=len(CLASS_TO_IDX)).to(DEVICE)
+    model = EmotionCRNN(num_classes=len(CLASS_TO_IDX)).to(DEVICE)
     state_dict = torch.load(best_model_path, map_location=DEVICE)
     model.load_state_dict(state_dict)
     model.eval()
