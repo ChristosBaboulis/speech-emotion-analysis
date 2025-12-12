@@ -1,0 +1,19 @@
+Baseline Model:
+Train baseline: python -m src.baseline.train
+Evaluate baseline στο IEMOCAP: python -m src.baseline.evaluate
+Αποθηκεύει: confusion_matrix_baseline_iemocap_test.png
+Evaluate baseline στο RAVDESS: python -m src.baseline.eval_ravdess_baseline
+Αποθηκεύει: confusion_matrix_baseline_ravdess.png
+
+DANN Model:
+Train DANN: python -m src.dann.train_dann
+Evaluate DANN στο IEMOCAP: python -m src.dann.eval_iemocap_dann
+Αποθηκεύει: confusion_matrix_dann_iemocap_test.png
+Evaluate DANN στο RAVDESS: python -m src.dann.eval_ravdess_dann
+Αποθηκεύει: confusion_matrix_dann_ravdess.png
+
+Συμπεράσματα:
+Σύγκριση:
+Baseline: 2 accuracies (IEMOCAP test, RAVDESS)
+DANN: 2 accuracies (IEMOCAP test, RAVDESS)
+Συγκρίσεις: IEMOCAP (source) και RAVDESS (target domain)

@@ -19,6 +19,8 @@ warnings.filterwarnings(
 # ----------------- PATHS & DEVICE -----------------
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 RAVDESS_BASE = r"D:\Recordings\Science\DL\RAVDESS"
+RESULTS_DIR = "results"
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
 
 def main():
@@ -46,6 +48,7 @@ def main():
 
     # 3) confusion matrix + accuracy
     CLASS_NAMES = ["angry", "happy", "neutral", "sad", "frustrated"]
+    save_path = os.path.join(RESULTS_DIR, "confusion_matrix_baseline_ravdess.png")
 
     acc, cm = eval_with_confusion(
         model=model,
@@ -55,6 +58,7 @@ def main():
         class_names=CLASS_NAMES,
         normalize=True,
         title="Baseline CNN on RAVDESS",
+        save_path=save_path,
     )
 
     print(f"Baseline CNN accuracy on RAVDESS: {acc:.4f}")

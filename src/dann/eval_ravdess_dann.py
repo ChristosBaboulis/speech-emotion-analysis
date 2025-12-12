@@ -17,6 +17,8 @@ warnings.filterwarnings(
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 RAVDESS_BASE = r"D:\Recordings\Science\DL\RAVDESS"
+RESULTS_DIR = "results"
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
 
 class DANNEmotionWrapper(nn.Module):
@@ -59,6 +61,7 @@ def main():
     model = DANNEmotionWrapper(dann).to(DEVICE)
 
     CLASS_NAMES = ["angry", "happy", "neutral", "sad", "frustrated"]
+    save_path = os.path.join(RESULTS_DIR, "confusion_matrix_dann_ravdess.png")
 
     acc, cm = eval_with_confusion(
         model=model,
@@ -68,6 +71,7 @@ def main():
         class_names=CLASS_NAMES,
         normalize=True,
         title="DANN CNN on RAVDESS",
+        save_path=save_path,
     )
 
     print(f"DANN model accuracy on RAVDESS: {acc:.4f}")

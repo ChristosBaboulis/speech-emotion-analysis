@@ -1,12 +1,13 @@
 import os
 import numpy as np
 import torch
+import torch.nn as nn
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 
 from src.data.iemocap_dataset_loader import load_iemocap_metadata, split_iemocap_by_sessions, CLASS_TO_IDX
 from src.baseline.dataloaders import create_dataloaders
-from src.baseline.model_crnn import EmotionCRNN
+from src.dann.model_dann import DANNEmotionModel
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BASE_PATH = r"D:\Recordings\Science\DL\IEMOCAP_full_release"
@@ -16,13 +17,27 @@ RESULTS_DIR = "results"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 
+class DANNEmotionWrapper(nn.Module):
+    """
+    Wrapper over DANN for inference:
+    forward(x) -> *only* emotion logits
+    """
+    def __init__(self, dann_model: DANNEmotionModel):
+        super().__init__()
+        self.dann_model = dann_model
+
+    def forward(self, x):
+        emotion_logits, _ = self.dann_model(x, alpha=0.0)
+        return emotion_logits
+
+
 def main():
     print("Using device:", DEVICE)
 
     # Load all samples
     samples = load_iemocap_metadata(BASE_PATH)
 
-    # Split by session (speaker-independent, same as train.py)
+    # Split by session (speaker-independent, same as train_dann.py)
     train_samples, val_samples, test_samples = split_iemocap_by_sessions(samples)
 
     print("Train samples (Session1-3):", len(train_samples))
@@ -34,14 +49,17 @@ def main():
         train_samples, val_samples, test_samples, batch_size=32
     )
 
-    # Load best model
-    best_model_path = os.path.join(MODELS_DIR, "best_emotion_cnn.pt")
+    # Load best DANN model
+    best_model_path = os.path.join(MODELS_DIR, "best_dann_emotion_cnn.pt")
     if not os.path.isfile(best_model_path):
-        raise FileNotFoundError(f"Best model not found at {best_model_path}")
+        raise FileNotFoundError(f"Best DANN model not found at {best_model_path}")
 
-    model = EmotionCRNN(num_classes=len(CLASS_TO_IDX)).to(DEVICE)
+    dann = DANNEmotionModel(num_classes=len(CLASS_TO_IDX), num_domains=2).to(DEVICE)
     state_dict = torch.load(best_model_path, map_location=DEVICE)
-    model.load_state_dict(state_dict)
+    dann.load_state_dict(state_dict)
+    
+    # Wrapper for consistent interface
+    model = DANNEmotionWrapper(dann).to(DEVICE)
     model.eval()
 
     all_labels = []
@@ -90,7 +108,7 @@ def plot_confusion_matrix(cm, class_names):
         yticklabels=class_names,
         ylabel="True label",
         xlabel="Predicted label",
-        title="Confusion Matrix (Test Set)",
+        title="Confusion Matrix - DANN on IEMOCAP Test Set",
     )
 
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
@@ -109,102 +127,11 @@ def plot_confusion_matrix(cm, class_names):
             )
 
     fig.tight_layout()
-    out_path = os.path.join(RESULTS_DIR, "confusion_matrix_baseline_iemocap.png")
+    out_path = os.path.join(RESULTS_DIR, "confusion_matrix_dann_iemocap_test.png")
     plt.savefig(out_path, dpi=200)
     plt.close(fig)
     print(f"Confusion matrix saved to {out_path}")
 
-
-def eval_with_confusion(model, loader, device, num_classes, class_names=None,
-                        normalize=False, title="Confusion matrix", save_path=None):
-    """
-    Evaluate model and generate confusion matrix.
-    
-    Args:
-        model: Model to evaluate
-        loader: DataLoader
-        device: Device to run on
-        num_classes: Number of classes
-        class_names: List of class names
-        normalize: Whether to normalize confusion matrix
-        title: Plot title
-        save_path: Path to save confusion matrix (if None, only shows plot)
-    
-    Returns:
-        acc: Accuracy
-        cm: Confusion matrix (numpy array)
-    """
-    model.eval()
-    all_preds = []
-    all_labels = []
-
-    with torch.no_grad():
-        for mel, labels in loader:           # mel: [B, 1, 128, 300]
-            mel = mel.to(device)
-            labels = labels.to(device)
-
-            outputs = model(mel)
-            preds = outputs.argmax(dim=1)
-
-            all_preds.append(preds.cpu())
-            all_labels.append(labels.cpu())
-
-    all_preds = torch.cat(all_preds).numpy()
-    all_labels = torch.cat(all_labels).numpy()
-
-    acc = (all_preds == all_labels).mean()
-
-    cm = confusion_matrix(
-        all_labels,
-        all_preds,
-        labels=list(range(num_classes))
-    ).astype(float)
-
-    if normalize:
-        cm = cm / cm.sum(axis=1, keepdims=True).clip(min=1e-9)
-
-    # ---- plot ----
-    if class_names is None:
-        class_names = [str(i) for i in range(num_classes)]
-
-    fig, ax = plt.subplots(figsize=(6, 5))
-    im = ax.imshow(cm, interpolation="nearest", cmap="Blues")
-    ax.figure.colorbar(im, ax=ax)
-
-    ax.set(
-        xticks=np.arange(len(class_names)),
-        yticks=np.arange(len(class_names)),
-        xticklabels=class_names,
-        yticklabels=class_names,
-        ylabel="True label",
-        xlabel="Predicted label",
-        title=title,
-    )
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
-
-    fmt = ".2f" if normalize else "d"
-    thresh = cm.max() / 2.0
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
-            ax.text(
-                j,
-                i,
-                format(cm[i, j], fmt),
-                ha="center",
-                va="center",
-                color="white" if cm[i, j] > thresh else "black",
-                fontsize=8,
-            )
-
-    fig.tight_layout()
-    
-    if save_path is not None:
-        plt.savefig(save_path, dpi=200)
-        print(f"Confusion matrix saved to {save_path}")
-    
-    plt.close(fig)
-
-    return acc, cm
 
 if __name__ == "__main__":
     main()
