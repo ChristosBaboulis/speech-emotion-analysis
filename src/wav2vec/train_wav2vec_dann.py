@@ -2,8 +2,9 @@ import os
 import warnings
 import torch
 import torch.nn as nn
-from torch.optim import Adam
-from torch.amp import autocast, GradScaler
+from torch.optim import AdamW
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+import math
 import math
 
 # Suppress transformers deprecation warnings
@@ -15,19 +16,24 @@ from src.wav2vec.dann_dataloaders import create_wav2vec_dann_loaders
 from src.wav2vec.model_wav2vec_dann import Wav2VecDANNEmotionModel
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Paths - Adjust these for Colab if needed
+# For Colab: Use paths like "/content/drive/MyDrive/..."
 IEMOCAP_BASE = r"D:\Recordings\Science\DL\IEMOCAP_full_release"
 RAVDESS_BASE = r"D:\Recordings\Science\DL\RAVDESS"
 MODELS_DIR = "models"
 os.makedirs(MODELS_DIR, exist_ok=True)
 BEST_MODEL_PATH = os.path.join(MODELS_DIR, "best_wav2vec_dann_emotion.pt")
 
-# Hyperparameters
-NUM_EPOCHS = 40
-BATCH_SIZE = 4  # Smaller batch size for Wav2Vec2 memory requirements
-LR_ENCODER = 5e-5  # Lower LR for pre-trained encoder
-LR_CLASSIFIER = 1e-3  # Higher LR for classifier heads
-LAMBDA_DOMAIN = 0.5
+# Hyperparameters (standard Wav2Vec2 fine-tuning practices)
+NUM_EPOCHS = 10  # Quick test - change to 40 for full training
+BATCH_SIZE = 4  # Safe batch size for RTX 3060 Ti 8GB
+# For Colab: Increase to 8-12 (T4) or 16-32 (A100/V100) for faster training
+LR_ENCODER = 2e-5  # Slightly lower for stability
+LR_CLASSIFIER = 3e-4  # Slightly lower for stability
+LAMBDA_DOMAIN = 0.5  # Match working DANN model
 MAX_AUDIO_LENGTH = 10.0  # 10 seconds max
+USE_MIXED_PRECISION = False  # Disable mixed precision - more stable for DANN
 
 
 def evaluate(model, loader, criterion):
@@ -50,9 +56,8 @@ def evaluate(model, loader, criterion):
             if attention_masks is not None:
                 attention_masks = attention_masks.to(DEVICE)
 
-            with autocast(device_type='cuda'):
-                emotion_logits, _ = model(audios, attention_mask=attention_masks, alpha=0.0)
-                loss = criterion(emotion_logits, labels)
+            emotion_logits, _ = model(audios, attention_mask=attention_masks, alpha=0.0)
+            loss = criterion(emotion_logits, labels)
 
             total_loss += loss.item() * audios.size(0)
             preds = emotion_logits.argmax(dim=1)
@@ -105,16 +110,21 @@ def main():
     encoder_params = list(model.wav2vec.parameters())
     classifier_params = list(model.classifier.parameters()) + list(model.domain_head.parameters())
     
-    optimizer = Adam(
+    # AdamW is standard for transformers (weight decay handled separately)
+    optimizer = AdamW(
         [
-            {'params': encoder_params, 'lr': LR_ENCODER},
-            {'params': classifier_params, 'lr': LR_CLASSIFIER}
+            {'params': encoder_params, 'lr': LR_ENCODER, 'weight_decay': 0.01},
+            {'params': classifier_params, 'lr': LR_CLASSIFIER, 'weight_decay': 0.01}
         ]
     )
     
     class_criterion = nn.CrossEntropyLoss()
     domain_criterion = nn.CrossEntropyLoss()
-    scaler = GradScaler(device='cuda')  # For mixed precision
+    
+    # Learning rate scheduler: reduce LR when validation plateaus
+    scheduler = ReduceLROnPlateau(
+        optimizer, mode='max', factor=0.7, patience=5, verbose=True
+    )
 
     best_val_acc = 0.0
 
@@ -172,7 +182,7 @@ def main():
             else:
                 all_masks = None
 
-            # Alpha scheduling for gradient reversal (standard DANN approach)
+            # Alpha scheduling for gradient reversal (standard DANN approach, match working DANN)
             # Progress from 0 to 1 across training: p in [0, 1]
             p = (epoch - 1 + step / num_steps) / NUM_EPOCHS
             # Sigmoid-like schedule: alpha increases smoothly from 0 to MAX_ALPHA
@@ -182,20 +192,20 @@ def main():
 
             optimizer.zero_grad()
 
-            with autocast(device_type='cuda'):
-                emotion_logits, domain_logits = model(all_audios, attention_mask=all_masks, alpha=alpha)
+            emotion_logits, domain_logits = model(all_audios, attention_mask=all_masks, alpha=alpha)
 
-                # Classification loss only on source samples
-                bs_src = src_audios.size(0)
-                cls_logits = emotion_logits[:bs_src]
+            # Classification loss only on source samples
+            bs_src = src_audios.size(0)
+            cls_logits = emotion_logits[:bs_src]
 
-                loss_cls = class_criterion(cls_logits, src_labels)
-                loss_dom = domain_criterion(domain_logits, all_domains)
-                loss = loss_cls + LAMBDA_DOMAIN * loss_dom
+            loss_cls = class_criterion(cls_logits, src_labels)
+            loss_dom = domain_criterion(domain_logits, all_domains)
+            loss = loss_cls + LAMBDA_DOMAIN * loss_dom
 
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
+            loss.backward()
+            # Gradient clipping for stability (less aggressive than before)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
 
             # Stats
             total_cls_loss += loss_cls.item()
@@ -210,6 +220,9 @@ def main():
         train_acc = total_correct / total_samples if total_samples > 0 else 0.0
 
         val_loss, val_acc = evaluate(model, val_loader_src, class_criterion)
+        
+        # Update learning rate based on validation accuracy
+        scheduler.step(val_acc)
 
         print(
             f"Epoch {epoch}/{NUM_EPOCHS} | "
