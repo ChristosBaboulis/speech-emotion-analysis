@@ -18,14 +18,17 @@ def collate_fn(batch):
         labels = torch.tensor([item[1] for item in batch], dtype=torch.long)
         attention_masks = [item[2] for item in batch]
         domain_ids = torch.tensor([item[3] for item in batch], dtype=torch.long)
+        has_attention_mask = True
     else:
-        # Standard format: (audio, label, attention_mask)
+        # Standard format: (audio, label, attention_mask) or (audio, label)
         audios = [item[0] for item in batch]
         labels = torch.tensor([item[1] for item in batch], dtype=torch.long)
         if len(batch[0]) >= 3:
             attention_masks = [item[2] for item in batch]
+            has_attention_mask = True
         else:
             attention_masks = None
+            has_attention_mask = False
         domain_ids = None
     
     # Find max length in batch
