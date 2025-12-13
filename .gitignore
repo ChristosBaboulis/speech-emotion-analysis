@@ -5,8 +5,3 @@ __pycache__/
 # Model checkpoints (generated files, too large for git)
 models/*.pt
 models/*.pth
-
-# Results (generated files)
-results/*.png
-results/*.jpg
-results/*.jpeg
