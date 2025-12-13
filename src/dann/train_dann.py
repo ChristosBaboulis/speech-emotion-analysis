@@ -19,7 +19,7 @@ MODELS_DIR = "models"
 os.makedirs(MODELS_DIR, exist_ok=True)
 BEST_MODEL_PATH = os.path.join(MODELS_DIR, "best_dann_emotion_cnn.pt")
 
-NUM_EPOCHS = 20
+NUM_EPOCHS = 50
 BATCH_SIZE = 16
 LR = 1e-3
 LAMBDA_DOMAIN = 0.5
