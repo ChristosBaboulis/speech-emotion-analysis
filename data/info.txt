@@ -1,10 +1,7 @@
 cmd:
 conda activate speech-emotion
 python -m src.baseline.model_cnn
-
 ---------------------------------------------------------------------------------------------------
-Τι έχουμε χτίσει μέχρι τώρα
-
 dataset_loader.py
 → Σκανάρει IEMOCAP, φτιάχνει λίστα samples με path / emotion / label.
 
@@ -30,13 +27,11 @@ train.py
 
 φορτώνει samples
 
-κάνει 70/15/15 split
+κάνει 60/20/20 split
 
 φτιάχνει dataloaders
 
-τρέχει training loop (3 epochs test run) πάνω σε GPU.
-
-
+τρέχει training loop πάνω σε GPU.
 ---------------------------------------------------------------------------------------------------
 # 1. Train baseline CNN στο IEMOCAP
 python src/train.py
