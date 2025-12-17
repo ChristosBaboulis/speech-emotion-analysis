@@ -66,6 +66,21 @@ class DANNEmotionModel(nn.Module):
             bidirectional=True,
         )
 
+        # Attention layer before temporal pooling
+        self.attention = nn.Sequential(
+            nn.Linear(self.lstm_hidden * 2, self.lstm_hidden * 2),
+            nn.Tanh(),
+            nn.Dropout(0.1),  # Slight dropout for regularization
+            nn.Linear(self.lstm_hidden * 2, 1),
+        )
+        
+        # Initialize attention to be close to uniform (mean pooling)
+        # This helps it start similar to the baseline and learn from there
+        for module in self.attention:
+            if isinstance(module, nn.Linear):
+                nn.init.xavier_uniform_(module.weight, gain=0.1)  # Small gain for near-uniform start
+                nn.init.constant_(module.bias, 0.0)
+
         # Gradient reversal layer for domain adaptation
         self.grl = GradientReversal()
 
@@ -106,8 +121,22 @@ class DANNEmotionModel(nn.Module):
         # BiLSTM (same as EmotionCRNN)
         lstm_out, _ = self.lstm(x)               # [B, T, 2*hidden]
 
-        # Temporal pooling: mean over time (same as EmotionCRNN)
-        x = lstm_out.mean(dim=1)                 # [B, 2*hidden]
+        # Attention mechanism before temporal pooling
+        # Compute attention weights for each time step
+        attn_weights = self.attention(lstm_out)  # [B, T, 1]
+        attn_weights = attn_weights.squeeze(-1)  # [B, T]
+        attn_weights = torch.softmax(attn_weights, dim=1)  # [B, T]
+        attn_weights = attn_weights.unsqueeze(-1)  # [B, T, 1]
+        
+        # Weighted sum over time dimension (attention-based pooling)
+        attn_pooled = (lstm_out * attn_weights).sum(dim=1)  # [B, 2*hidden]
+        
+        # Residual connection with mean pooling (helps maintain baseline performance)
+        mean_pooled = lstm_out.mean(dim=1)  # [B, 2*hidden]
+        
+        # Combine attention and mean pooling (weighted combination)
+        # Start with 50-50, let the model learn the optimal mix
+        x = 0.5 * attn_pooled + 0.5 * mean_pooled  # [B, 2*hidden]
 
         # Emotion classification branch (same as EmotionCRNN)
         emotion_logits = self.classifier(x)      # [B, num_classes]

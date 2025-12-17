@@ -4,6 +4,9 @@ import torch.nn as nn
 from torch.optim import Adam
 import math
 
+# Fix OpenMP warning on Windows
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 # Use absolute imports so the src package resolves correctly.
 from src.data.iemocap_dataset_loader import load_iemocap_metadata, split_iemocap_by_sessions
 from src.baseline.dataloaders import create_dataloaders
@@ -66,11 +69,12 @@ def main():
     )
 
     # ---------- DANN loaders (source: IEMOCAP train, target: RAVDESS) ----------
+    # num_workers=0 for Windows compatibility (avoids OpenMP conflicts)
     src_loader, tgt_loader = create_dann_loaders(
         train_samples,  # Pre-split IEMOCAP training samples (Session1-3)
         RAVDESS_BASE,
         batch_size=BATCH_SIZE,
-        num_workers=4,
+        num_workers=0,
     )
 
     print("Source DANN batches:", len(src_loader))

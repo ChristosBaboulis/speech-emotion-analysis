@@ -37,7 +37,8 @@ This repository contains a comprehensive deep learning framework for speech emot
 
 ### 2. DANN CRNN (`src/dann/`)
 
-- **Architecture**: Same as baseline + Gradient Reversal Layer + Domain classifier head
+- **Architecture**: Same as baseline + **Attention mechanism** (before temporal pooling) + Gradient Reversal Layer + Domain classifier head
+- **Attention Layer**: Self-attention mechanism that computes weighted aggregation over time steps, combined with mean pooling via residual connection (50-50 mix) for stable training
 - **Domain Adaptation**: Gradient reversal with sigmoid-like alpha scheduling (max alpha=0.7)
 - **Training**: Combined classification loss (source domain) + domain loss (lambda=0.5)
 
@@ -224,14 +225,15 @@ python -m src.wav2vec.eval_ravdess_wav2vec_dann
 | Model               | IEMOCAP Test Accuracy | RAVDESS Accuracy | Parameters |
 | ------------------- | --------------------- | ---------------- | ---------- |
 | **Baseline CRNN**   | ~44%                  | ~14%             | ~2.2M      |
-| **DANN CRNN**       | ~42%                  | ~24%             | ~2.2M      |
+| **DANN CRNN**       | ~41%                  | ~27%             | ~2.2M      |
 | **Wav2Vec2 + DANN** | ~42%                  | ~27%             | ~95M       |
 
 ### Key Observations
 
 - **Domain Shift**: Baseline model shows significant performance drop on RAVDESS (~14% vs ~44% on IEMOCAP)
-- **Domain Adaptation**: DANN improves cross-domain performance by ~10% on RAVDESS while maintaining similar IEMOCAP accuracy
-- **Pre-trained Models**: Wav2Vec2 + DANN shows the best cross-domain performance (~27% on RAVDESS) but requires more computational resources
+- **Domain Adaptation**: DANN improves cross-domain performance by ~13% on RAVDESS (~27% vs ~14%) while maintaining similar IEMOCAP accuracy (~41%)
+- **Attention Mechanism**: The attention layer in DANN CRNN helps improve cross-domain generalization, with residual connection ensuring stable training
+- **Pre-trained Models**: Wav2Vec2 + DANN matches DANN CRNN cross-domain performance (~27% on RAVDESS) but requires more computational resources
 
 Confusion matrices for all evaluations are saved in the `results/` directory.
 
