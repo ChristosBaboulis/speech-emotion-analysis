@@ -57,13 +57,14 @@ class DANNEmotionModel(nn.Module):
         self.lstm_input_dim = 128 * self.freq_bins
         self.lstm_hidden = 128
 
-        # BiLSTM over time dimension (same as EmotionCRNN)
+        # BiLSTM over time dimension (2 layers for better representation)
         self.lstm = nn.LSTM(
             input_size=self.lstm_input_dim,
             hidden_size=self.lstm_hidden,
-            num_layers=1,
+            num_layers=2,
             batch_first=True,
             bidirectional=True,
+            dropout=0.2,  # Dropout between LSTM layers
         )
 
         # Attention layer before temporal pooling
@@ -84,12 +85,18 @@ class DANNEmotionModel(nn.Module):
         # Gradient reversal layer for domain adaptation
         self.grl = GradientReversal()
 
-        # Emotion classifier head (same structure as EmotionCRNN.classifier)
+        # Emotion classifier head (deeper with gradual reduction: 256→128→64→5)
         self.classifier = nn.Sequential(
-            nn.Linear(self.lstm_hidden * 2, 128),
+            nn.Linear(self.lstm_hidden * 2, 256),
             nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(128, num_classes),
+            nn.Dropout(0.3),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(64, num_classes),
         )
 
         # Domain classifier head (for domain adaptation)
@@ -155,3 +162,4 @@ if __name__ == "__main__":
     emotion_out, domain_out = model(dummy, alpha=0.5)
     print("Emotion logits shape:", emotion_out.shape)
     print("Domain logits shape:", domain_out.shape)
+

@@ -44,3 +44,265 @@ python src/eval_ravdess_baseline.py
 
 # 4. Evaluate DANN στο RAVDESS
 python src/eval_ravdess_dann.py
+
+---------------------------------------------------------------------------------------------------
+REFERENCES
+---------------------------------------------------------------------------------------------------
+
+Citation (IEEE):
+
+C. Busso et al., “IEMOCAP: Interactive emotional dyadic motion capture database,” Language Resources and Evaluation, vol. 42, no. 4, pp. 335–359, 2008.
+
+Αφορά θεωρητικά:
+
+Ορισμό και περιγραφή του dataset IEMOCAP
+
+Κατηγορίες συναισθημάτων (angry, happy, sad, neutral κ.λπ.)
+
+Speaker-independent evaluation (sessions, διαφορετικοί ομιλητές)
+
+Ground truth labels μέσω human annotation
+
+Χρήση στο project:
+
+Κύριο source dataset για supervised training
+
+Speaker-independent split (Session 1–3 train, 4 val, 5 test)
+
+Βασικό σημείο αναφοράς (baseline performance)
+
+2. RAVDESS Dataset
+
+Livingstone, S. R., & Russo, F. A. (2018).
+The Ryerson Audio-Visual Database of Emotional Speech and Song (RAVDESS).
+PLoS ONE, 13(5), e0196391.
+
+Citation (IEEE):
+
+S. R. Livingstone and F. A. Russo, “The Ryerson Audio-Visual Database of Emotional Speech and Song (RAVDESS),” PLoS ONE, vol. 13, no. 5, 2018.
+
+Αφορά θεωρητικά:
+
+Cross-speaker & cross-dataset emotion recognition
+
+Standardized acted emotional speech
+
+Διαφορές distribution σε σχέση με IEMOCAP
+
+Χρήση στο project:
+
+Target domain στο domain adaptation
+
+Ανεξάρτητο test set για generalization
+
+Απόδειξη domain shift (baseline vs DANN)
+
+3. Log-Mel Spectrograms για Speech
+
+Davis, S., & Mermelstein, P. (1980).
+Comparison of parametric representations for monosyllabic word recognition in continuously spoken sentences.
+IEEE Transactions on Acoustics, Speech, and Signal Processing.
+
+Citation (IEEE):
+
+S. Davis and P. Mermelstein, “Comparison of parametric representations for monosyllabic word recognition,” IEEE Trans. ASSP, vol. 28, no. 4, pp. 357–366, 1980.
+
+Αφορά θεωρητικά:
+
+Mel scale (ψυχοακουστική προσέγγιση)
+
+Log-energy compression
+
+Γιατί log-mel είναι κατάλληλο input για CNNs
+
+Χρήση στο project:
+
+Feature extraction pipeline (wav → log-mel)
+
+Fixed-size spectrograms (padding / truncation)
+
+Κοινή αναπαράσταση για όλα τα μοντέλα
+
+4. CNNs για Speech Emotion Recognition
+
+Trigeorgis, G., Ringeval, F., Brueckner, R., et al. (2016).
+Adieu features? End-to-end speech emotion recognition using a deep convolutional recurrent network.
+ICASSP 2016.
+
+Citation (IEEE):
+
+G. Trigeorgis et al., “Adieu features? End-to-end speech emotion recognition using a deep convolutional recurrent network,” in Proc. ICASSP, 2016.
+
+Αφορά θεωρητικά:
+
+Συνδυασμό CNN + RNN για SER
+
+CNN για local spectral patterns
+
+RNN για temporal dynamics
+
+Χρήση στο project:
+
+Σχεδιασμός baseline CNN/CRNN αρχιτεκτονικής
+
+Justification για χρήση convolutional layers πάνω σε spectrograms
+
+Επιλογή temporal modeling (GRU)
+
+5. Domain Adaptation – DANN
+
+Ganin, Y., & Lempitsky, V. (2015).
+Unsupervised domain adaptation by backpropagation.
+ICML 2015.
+
+Citation (IEEE):
+
+Y. Ganin and V. Lempitsky, “Unsupervised domain adaptation by backpropagation,” in Proc. ICML, 2015.
+
+Αφορά θεωρητικά:
+
+Domain-Adversarial Neural Networks (DANN)
+
+Gradient Reversal Layer (GRL)
+
+Feature-level domain invariance
+
+Trade-off μεταξύ source accuracy και target generalization
+
+Χρήση στο project:
+
+DANN αρχιτεκτονική (feature extractor + emotion head + domain head)
+
+Gradient Reversal Layer implementation
+
+Training objective: classification loss + domain loss
+
+Ανάλυση trade-off IEMOCAP vs RAVDESS
+
+6. Gradient Reversal Layer
+
+Ganin, Y., Ustinova, E., Ajakan, H., et al. (2016).
+Domain-adversarial training of neural networks.
+Journal of Machine Learning Research (JMLR).
+
+Citation (IEEE):
+
+Y. Ganin et al., “Domain-adversarial training of neural networks,” JMLR, vol. 17, no. 59, pp. 1–35, 2016.
+
+Αφορά θεωρητικά:
+
+Formalization του GRL
+
+Γιατί το backpropagation αρκεί για domain adaptation
+
+Σταθερό training χωρίς explicit minimax loops
+
+Χρήση στο project:
+
+Υλοποίηση GradReverse / GradientReversal module
+
+Alpha scheduling κατά το training
+
+Σταθερό adversarial optimization
+
+7. Evaluation Metrics (Precision / Recall / F1)
+
+Sokolova, M., & Lapalme, G. (2009).
+A systematic analysis of performance measures for classification tasks.
+Information Processing & Management.
+
+Citation (IEEE):
+
+M. Sokolova and G. Lapalme, “A systematic analysis of performance measures for classification tasks,” Information Processing & Management, vol. 45, no. 4, pp. 427–437, 2009.
+
+Αφορά θεωρητικά:
+
+Precision / Recall / F1-score
+
+Macro vs weighted averages
+
+Class imbalance implications
+
+Χρήση στο project:
+
+Ανάλυση per-class performance
+
+Justification για confusion matrices
+
+Ανάλυση class imbalance effects
+
+8. Confusion Matrices & Error Analysis
+
+Fawcett, T. (2006).
+An introduction to ROC analysis.
+Pattern Recognition Letters.
+
+Citation (IEEE):
+
+T. Fawcett, “An introduction to ROC analysis,” Pattern Recognition Letters, vol. 27, no. 8, pp. 861–874, 2006.
+
+Αφορά θεωρητικά:
+
+Error analysis πέρα από accuracy
+
+Σημασία class-wise inspection
+
+Κατανόηση failure modes
+
+Χρήση στο project:
+
+Confusion matrices για baseline vs DANN
+
+Ποιοτική σύγκριση μοντέλων
+
+Ανάλυση λαθών στο RAVDESS
+
+9. Pretrained Speech Models (Wav2Vec 2.0)
+
+Baevski, A., Zhou, H., Mohamed, A., & Auli, M. (2020).
+wav2vec 2.0: A framework for self-supervised learning of speech representations.
+NeurIPS 2020.
+
+Citation (IEEE):
+
+A. Baevski et al., “wav2vec 2.0: A framework for self-supervised learning of speech representations,” in Proc. NeurIPS, 2020.
+
+Αφορά θεωρητικά:
+
+Self-supervised speech representation learning
+
+Contrastive learning σε raw audio
+
+Transfer learning σε downstream tasks
+
+Χρήση στο project (επόμενη φάση):
+
+Σύγκριση handcrafted CNN vs pretrained encoders
+
+Fine-tuning για emotion recognition
+
+Benchmark έναντι DANN
+
+---------------------------------------------------------------------------------------------------
+
+Ganin, Y., & Lempitsky, V. (2016). Unsupervised Domain Adaptation by Backpropagation. ICML.
+- Gradient reversal layer implementation and alpha scheduling (sigmoid schedule, MAX_ALPHA=0.7)
+- Lambda domain weight parameter (0.5)
+- Domain adversarial training methodology
+
+Wang, F., et al. (2017). Residual Attention Network for Image Classification. CVPR.
+- Attention mechanism with residual connections
+- Attention pooling combined with mean pooling for stability
+
+Srivastava, N., et al. (2014). Dropout: A Simple Way to Prevent Neural Networks from Overfitting. JMLR.
+- Dropout regularization (0.3 for classifier layers, 0.2 for LSTM layers)
+
+Graves, A., & Schmidhuber, J. (2005). Framewise phoneme classification with bidirectional LSTM and other neural network architectures. Neural Networks.
+- Bidirectional LSTM architecture for temporal sequence modeling
+- Multiple LSTM layers (2 layers with dropout between layers)
+
+1. Speech Emotion Recognition – IEMOCAP
+
+Busso, C., Bulut, M., Lee, C. C., et al. (2008).
+IEMOCAP: Interactive emotional dyadic motion capture database.
+Language Resources and Evaluation, 42(4), 335–359.

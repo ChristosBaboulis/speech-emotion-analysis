@@ -37,10 +37,12 @@ This repository contains a comprehensive deep learning framework for speech emot
 
 ### 2. DANN CRNN (`src/dann/`)
 
-- **Architecture**: Same as baseline + **Attention mechanism** (before temporal pooling) + Gradient Reversal Layer + Domain classifier head
+- **Architecture**: 2D CNN (32→64→128 channels) + **2-layer BiLSTM** (128 hidden, bidirectional) + **Attention mechanism** (before temporal pooling) + Gradient Reversal Layer + Domain classifier head
+- **BiLSTM**: 2 layers with dropout=0.2 between layers for better temporal representation
+- **Classifier**: Deeper architecture with gradual reduction (256→128→64→5) with dropout=0.3
 - **Attention Layer**: Self-attention mechanism that computes weighted aggregation over time steps, combined with mean pooling via residual connection (50-50 mix) for stable training
 - **Domain Adaptation**: Gradient reversal with sigmoid-like alpha scheduling (max alpha=0.7)
-- **Training**: Combined classification loss (source domain) + domain loss (lambda=0.5)
+- **Training**: Combined classification loss (source domain) + domain loss (lambda=0.5), learning rate 5e-4 with ReduceLROnPlateau scheduler
 
 ### 3. Wav2Vec2 + DANN (`src/wav2vec/`)
 
@@ -225,29 +227,41 @@ python -m src.wav2vec.eval_ravdess_wav2vec_dann
 | Model               | IEMOCAP Test Accuracy | RAVDESS Accuracy | Parameters |
 | ------------------- | --------------------- | ---------------- | ---------- |
 | **Baseline CRNN**   | ~44%                  | ~14%             | ~2.2M      |
-| **DANN CRNN**       | ~41%                  | ~27%             | ~2.2M      |
+| **DANN CRNN**       | ~45%                  | ~27%             | ~2.5M      |
 | **Wav2Vec2 + DANN** | ~42%                  | ~27%             | ~95M       |
 
 ### Key Observations
 
 - **Domain Shift**: Baseline model shows significant performance drop on RAVDESS (~14% vs ~44% on IEMOCAP)
-- **Domain Adaptation**: DANN improves cross-domain performance by ~13% on RAVDESS (~27% vs ~14%) while maintaining similar IEMOCAP accuracy (~41%)
-- **Attention Mechanism**: The attention layer in DANN CRNN helps improve cross-domain generalization, with residual connection ensuring stable training
+- **Domain Adaptation**: DANN improves cross-domain performance by ~13% on RAVDESS (~27% vs ~14%) while maintaining IEMOCAP accuracy (~45%)
+- **Architecture Improvements**: 2-layer BiLSTM and deeper classifier (256→128→64→5) with attention mechanism improve both source and target domain performance
+- **Training Optimization**: Learning rate scheduling (5e-4 initial LR with ReduceLROnPlateau) enables better convergence for deeper architectures
 - **Pre-trained Models**: Wav2Vec2 + DANN matches DANN CRNN cross-domain performance (~27% on RAVDESS) but requires more computational resources
 
 Confusion matrices for all evaluations are saved in the `results/` directory.
 
 ## Hyperparameters
 
-### Baseline & DANN CRNN
+### Baseline CRNN
 
 - **Epochs**: 50
 - **Batch Size**: 16
 - **Learning Rate**: 1e-3
 - **Optimizer**: Adam
 - **Loss**: Cross-entropy
-- **Lambda Domain** (DANN): 0.5
-- **Max Alpha** (DANN GRL): 0.7
+
+### DANN CRNN
+
+- **Epochs**: 50
+- **Batch Size**: 16
+- **Learning Rate**: 5e-4 (initial, with ReduceLROnPlateau scheduler)
+- **LR Scheduler**: ReduceLROnPlateau (patience=5, factor=0.7)
+- **Optimizer**: Adam
+- **Loss**: Cross-entropy (classification) + domain loss
+- **Lambda Domain**: 0.5
+- **Max Alpha** (GRL): 0.7
+- **BiLSTM Layers**: 2 (dropout=0.2 between layers)
+- **Classifier**: 256→128→64→5 (dropout=0.3)
 
 ### Wav2Vec2 + DANN
 

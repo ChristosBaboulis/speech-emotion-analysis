@@ -2,6 +2,7 @@ import os
 import torch
 import torch.nn as nn
 from torch.optim import Adam
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 import math
 
 # Fix OpenMP warning on Windows
@@ -24,7 +25,7 @@ BEST_MODEL_PATH = os.path.join(MODELS_DIR, "best_dann_emotion_cnn.pt")
 
 NUM_EPOCHS = 50
 BATCH_SIZE = 16
-LR = 1e-3
+LR = 5e-4  # Reduced from 1e-3 for deeper model stability
 LAMBDA_DOMAIN = 0.5
 
 
@@ -85,6 +86,11 @@ def main():
     class_criterion = nn.CrossEntropyLoss()
     domain_criterion = nn.CrossEntropyLoss()
     optimizer = Adam(model.parameters(), lr=LR)
+    
+    # Learning rate scheduler: reduce LR when validation plateaus
+    scheduler = ReduceLROnPlateau(
+        optimizer, mode='max', factor=0.7, patience=5, verbose=True
+    )
 
     best_val_acc = 0.0
 
@@ -160,13 +166,17 @@ def main():
         train_acc = total_correct / total_samples if total_samples > 0 else 0.0
 
         val_loss, val_acc = evaluate(model, val_loader_src, class_criterion)
+        
+        # Update learning rate based on validation accuracy
+        scheduler.step(val_acc)
 
         print(
             f"Epoch {epoch}/{NUM_EPOCHS} | "
             f"Train cls loss: {avg_cls_loss:.4f}, "
             f"Train dom loss: {avg_dom_loss:.4f}, "
             f"Train acc (src): {train_acc:.4f} | "
-            f"Val loss: {val_loss:.4f}, Val acc: {val_acc:.4f}"
+            f"Val loss: {val_loss:.4f}, Val acc: {val_acc:.4f} | "
+            f"LR: {optimizer.param_groups[0]['lr']:.6f}"
         )
 
         if val_acc > best_val_acc:
