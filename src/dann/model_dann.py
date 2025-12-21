@@ -86,16 +86,17 @@ class DANNEmotionModel(nn.Module):
         self.grl = GradientReversal()
 
         # Emotion classifier head (deeper with gradual reduction: 256→128→64→5)
+        # Reduced dropout from 0.3 to 0.25 for better capacity utilization
         self.classifier = nn.Sequential(
             nn.Linear(self.lstm_hidden * 2, 256),
             nn.ReLU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.25),
             nn.Linear(256, 128),
             nn.ReLU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.25),
             nn.Linear(128, 64),
             nn.ReLU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.25),
             nn.Linear(64, num_classes),
         )
 

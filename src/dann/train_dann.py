@@ -23,10 +23,10 @@ MODELS_DIR = "models"
 os.makedirs(MODELS_DIR, exist_ok=True)
 BEST_MODEL_PATH = os.path.join(MODELS_DIR, "best_dann_emotion_cnn.pt")
 
-NUM_EPOCHS = 50
+NUM_EPOCHS = 100
 BATCH_SIZE = 16
 LR = 5e-4  # Reduced from 1e-3 for deeper model stability
-LAMBDA_DOMAIN = 0.5
+LAMBDA_DOMAIN = 0.7  # Increased from 0.5 for stronger domain adaptation
 
 
 def evaluate(model, loader, criterion):

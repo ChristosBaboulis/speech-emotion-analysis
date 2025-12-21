@@ -3,15 +3,17 @@ from torch.utils.data import Dataset
 import torch.nn.functional as F
 import librosa
 import numpy as np
+from src.data.audio_augmentation import apply_augmentation
 
 
 class RAVDESSDataset(Dataset):
-    def __init__(self, samples, sr=16000, n_mels=128, max_frames=300, domain_id=None):
+    def __init__(self, samples, sr=16000, n_mels=128, max_frames=300, domain_id=None, augment=False):
         self.samples = samples
         self.sr = sr
         self.n_mels = n_mels
         self.max_frames = max_frames  # fixed time dimension
         self.domain_id = domain_id  # Optional: if provided, returns (mel, label, domain_id)
+        self.augment = augment  # Enable augmentation for training (typically False for target domain)
 
     def __len__(self):
         return len(self.samples)
@@ -23,6 +25,10 @@ class RAVDESSDataset(Dataset):
 
         # Load audio
         y, sr = librosa.load(wav_path, sr=self.sr)
+        
+        # Apply augmentation if enabled (typically False for target domain)
+        if self.augment:
+            y = apply_augmentation(y, sr, p=0.5)
 
         # Mel-spectrogram
         S = librosa.feature.melspectrogram(

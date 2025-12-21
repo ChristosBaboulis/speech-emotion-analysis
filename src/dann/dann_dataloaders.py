@@ -14,6 +14,7 @@ def create_dann_loaders(
     ravdess_base: str,
     batch_size: int = 32,
     num_workers: int = 4,
+    augment: bool = True,
 ):
     """
     Create DANN dataloaders for domain adaptation.
@@ -23,14 +24,16 @@ def create_dann_loaders(
         ravdess_base: Base path to RAVDESS dataset
         batch_size: Batch size for dataloaders
         num_workers: Number of worker processes for data loading
+        augment: Enable augmentation for source dataset (default: True for training)
     """
     # 1) RAVDESS metadata (all actors)
     ravdess_samples = load_ravdess_metadata(ravdess_base)
 
     # 2) Build datasets
     # domain_id: 0 = IEMOCAP, 1 = RAVDESS
-    source_dataset = IEMOCAPDataset(train_iemocap_samples, domain_id=0)
-    target_dataset = RAVDESSDataset(ravdess_samples, domain_id=1)
+    # Enable augmentation only for source dataset (training)
+    source_dataset = IEMOCAPDataset(train_iemocap_samples, domain_id=0, augment=augment)
+    target_dataset = RAVDESSDataset(ravdess_samples, domain_id=1, augment=False)
 
     # 3) Class balancing for source (IEMOCAP)
     labels = torch.tensor([s["label"] for s in train_iemocap_samples], dtype=torch.long)

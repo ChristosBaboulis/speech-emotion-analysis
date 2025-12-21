@@ -287,7 +287,7 @@ Benchmark έναντι DANN
 
 Ganin, Y., & Lempitsky, V. (2016). Unsupervised Domain Adaptation by Backpropagation. ICML.
 - Gradient reversal layer implementation and alpha scheduling (sigmoid schedule, MAX_ALPHA=0.7)
-- Lambda domain weight parameter (0.5)
+- Lambda domain weight parameter (0.7, increased from 0.5 for stronger domain adaptation)
 - Domain adversarial training methodology
 
 Wang, F., et al. (2017). Residual Attention Network for Image Classification. CVPR.
@@ -295,11 +295,15 @@ Wang, F., et al. (2017). Residual Attention Network for Image Classification. CV
 - Attention pooling combined with mean pooling for stability
 
 Srivastava, N., et al. (2014). Dropout: A Simple Way to Prevent Neural Networks from Overfitting. JMLR.
-- Dropout regularization (0.3 for classifier layers, 0.2 for LSTM layers)
+- Dropout regularization (0.25 for classifier layers, 0.2 for LSTM layers)
 
 Graves, A., & Schmidhuber, J. (2005). Framewise phoneme classification with bidirectional LSTM and other neural network architectures. Neural Networks.
 - Bidirectional LSTM architecture for temporal sequence modeling
 - Multiple LSTM layers (2 layers with dropout between layers)
+
+Hernández-García, A., & König, P. (2018). Data augmentation instead of explicit regularization. arXiv preprint arXiv:1806.03852.
+- Data augmentation techniques (time stretching, pitch shifting, noise injection) for improving model generalization
+- Application to speech emotion recognition training data
 
 1. Speech Emotion Recognition – IEMOCAP
 

@@ -227,15 +227,17 @@ python -m src.wav2vec.eval_ravdess_wav2vec_dann
 | Model               | IEMOCAP Test Accuracy | RAVDESS Accuracy | Parameters |
 | ------------------- | --------------------- | ---------------- | ---------- |
 | **Baseline CRNN**   | ~44%                  | ~14%             | ~2.2M      |
-| **DANN CRNN**       | ~45%                  | ~27%             | ~2.5M      |
+| **DANN CRNN**       | ~45%                  | ~31%             | ~2.2M      |
 | **Wav2Vec2 + DANN** | ~42%                  | ~27%             | ~95M       |
 
 ### Key Observations
 
 - **Domain Shift**: Baseline model shows significant performance drop on RAVDESS (~14% vs ~44% on IEMOCAP)
-- **Domain Adaptation**: DANN improves cross-domain performance by ~13% on RAVDESS (~27% vs ~14%) while maintaining IEMOCAP accuracy (~45%)
+- **Domain Adaptation**: DANN improves cross-domain performance by ~17% on RAVDESS (~31% vs ~14%) while maintaining IEMOCAP accuracy (~45%)
 - **Architecture Improvements**: 2-layer BiLSTM and deeper classifier (256→128→64→5) with attention mechanism improve both source and target domain performance
 - **Training Optimization**: Learning rate scheduling (5e-4 initial LR with ReduceLROnPlateau) enables better convergence for deeper architectures
+- **Data Augmentation**: Time stretching, pitch shifting, and noise injection improve model generalization and cross-domain performance
+- **Hyperparameter Tuning**: Lambda domain weight (0.7) and optimized dropout (0.25) further enhance domain adaptation
 - **Pre-trained Models**: Wav2Vec2 + DANN matches DANN CRNN cross-domain performance (~27% on RAVDESS) but requires more computational resources
 
 Confusion matrices for all evaluations are saved in the `results/` directory.
@@ -252,16 +254,17 @@ Confusion matrices for all evaluations are saved in the `results/` directory.
 
 ### DANN CRNN
 
-- **Epochs**: 50
+- **Epochs**: 100
 - **Batch Size**: 16
 - **Learning Rate**: 5e-4 (initial, with ReduceLROnPlateau scheduler)
 - **LR Scheduler**: ReduceLROnPlateau (patience=5, factor=0.7)
 - **Optimizer**: Adam
 - **Loss**: Cross-entropy (classification) + domain loss
-- **Lambda Domain**: 0.5
+- **Lambda Domain**: 0.7 (increased from 0.5 for stronger domain adaptation)
 - **Max Alpha** (GRL): 0.7
 - **BiLSTM Layers**: 2 (dropout=0.2 between layers)
-- **Classifier**: 256→128→64→5 (dropout=0.3)
+- **Classifier**: 256→128→64→5 (dropout=0.25, optimized from 0.3)
+- **Data Augmentation**: Time stretching (±15%), pitch shifting (±2 semitones), noise injection (1-5%) applied to source domain training samples
 
 ### Wav2Vec2 + DANN
 
