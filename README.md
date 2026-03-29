@@ -2,6 +2,8 @@
 
 This repository contains a comprehensive deep learning framework for speech emotion recognition, comparing baseline Convolutional-Recurrent Neural Networks (CRNN) with Domain Adversarial Neural Networks (DANN) and pre-trained Wav2Vec2 models for domain adaptation across different speech datasets.
 
+The written project report is available in [`docs/Project-Paper.pdf`](docs/Project-Paper.pdf).
+
 ## Technologies Used
 
 - **PyTorch** – Deep learning framework
@@ -55,6 +57,8 @@ This repository contains a comprehensive deep learning framework for speech emot
 
 ```
 speech-emotion-analysis/
+├── docs/
+│   └── Project-Paper.pdf   # Written project report (PDF)
 ├── src/
 │   ├── baseline/           # Baseline CRNN model
 │   │   ├── model_crnn.py          # CRNN architecture
