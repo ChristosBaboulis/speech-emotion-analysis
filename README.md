@@ -108,32 +108,30 @@ git clone <repository-url>
 cd speech-emotion-analysis
 ```
 
-2. **Create a conda environment** (recommended):
+2. **Create environment (recommended)**:
+
+If `environment.yml` is available, create the environment automatically:
+
+```bash
+conda env create -f environment.yml
+conda activate speech-emotion
+```
+
+Alternatively, you can create it manually:
 
 ```bash
 conda create -n speech-emotion python=3.8
 conda activate speech-emotion
-```
-
-3. **Install dependencies**:
-
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118  # For CUDA 11.8
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 pip install librosa scikit-learn matplotlib numpy transformers
 ```
 
-Or install from `requirements.txt` if available:
-
-```bash
-pip install -r requirements.txt
-```
-
-4. **Download datasets**:
+3. **Download datasets**:
 
    - Download IEMOCAP dataset and place in the directory specified by `IEMOCAP_BASE` in training scripts
    - Download RAVDESS dataset and place in the directory specified by `RAVDESS_BASE`
 
-5. **Update paths** in training/evaluation scripts:
+4. **Update paths** in training/evaluation scripts:
    - Set `IEMOCAP_BASE` to your IEMOCAP dataset path
    - Set `RAVDESS_BASE` to your RAVDESS dataset path
 
